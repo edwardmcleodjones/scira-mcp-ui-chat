@@ -1,5 +1,6 @@
 import { experimental_createMCPClient as createMCPClient } from 'ai';
-
+// import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 export interface KeyValuePair {
   key: string;
@@ -8,7 +9,7 @@ export interface KeyValuePair {
 
 export interface MCPServerConfig {
   url: string;
-  type: 'sse' | 'stdio';
+  type: 'sse' | 'stdio' | 'streamable-http';
   command?: string;
   args?: string[];
   env?: KeyValuePair[];
@@ -36,17 +37,31 @@ export async function initializeMCPClients(
   // Process each MCP server configuration
   for (const mcpServer of mcpServers) {
     try {
-      // All servers are handled as SSE
-      const transport = {
-        type: 'sse' as const,
-        url: mcpServer.url,
-        headers: mcpServer.headers?.reduce((acc, header) => {
+      let mcpClient: any;
+      if (mcpServer.type === 'streamable-http') {
+        const url = new URL(mcpServer.url);
+        const headers = mcpServer.headers?.reduce((acc, header) => {
           if (header.key) acc[header.key] = header.value || '';
           return acc;
-        }, {} as Record<string, string>)
-      };
-
-      const mcpClient = await createMCPClient({ transport });
+        }, {} as Record<string, string>);
+        mcpClient = await createMCPClient({
+          transport: new StreamableHTTPClientTransport(url, {
+            sessionId: `session_${Date.now()}`,
+            // headers,
+          }),
+        });
+      } else {
+        // Fallback to existing SSE transport definition
+        const transport = {
+          type: 'sse' as const,
+          url: mcpServer.url,
+          headers: mcpServer.headers?.reduce((acc, header) => {
+            if (header.key) acc[header.key] = header.value || '';
+            return acc;
+          }, {} as Record<string, string>),
+        };
+        mcpClient = await createMCPClient({ transport });
+      }
       mcpClients.push(mcpClient);
 
       const mcptools = await mcpClient.tools();
@@ -56,7 +71,7 @@ export async function initializeMCPClients(
       // Add MCP tools to tools object
       tools = { ...tools, ...mcptools };
     } catch (error) {
-      console.error("Failed to initialize MCP client:", error);
+      console.error('Failed to initialize MCP client:', error);
       // Continue with other servers instead of failing the entire request
     }
   }
@@ -71,7 +86,7 @@ export async function initializeMCPClients(
   return {
     tools,
     clients: mcpClients,
-    cleanup: async () => await cleanupMCPClients(mcpClients)
+    cleanup: async () => await cleanupMCPClients(mcpClients),
   };
 }
 
@@ -81,7 +96,7 @@ async function cleanupMCPClients(clients: any[]): Promise<void> {
     try {
       await client.close();
     } catch (error) {
-      console.error("Error closing MCP client:", error);
+      console.error('Error closing MCP client:', error);
     }
   }
-} 
+}

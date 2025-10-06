@@ -182,12 +182,21 @@ export const ToolInvocation = memo(function ToolInvocation({
     }
   };
 
-  const resourceStyle =
-    toolName == 'show_user_status'
-      ? {
-          minHeight: 695,
-        }
-      : { minHeight: 425 };
+  // Scalable style selection for multiple tools
+  const TOOL_RESOURCE_STYLES: Record<string, React.CSSProperties> = {
+    show_user_status: { minHeight: 695 },
+    roll_regular_dice: { height: 140, minHeight: 140 },
+    // add more:
+  };
+  const DEFAULT_RESOURCE_STYLE: React.CSSProperties = {
+    // Default:
+    minHeight: 425,
+  };
+
+  const resourceStyle = useMemo(
+    () => TOOL_RESOURCE_STYLES[toolName] ?? DEFAULT_RESOURCE_STYLE,
+    [toolName]
+  );
 
   const handleUiAction = useCallback(
     async (result: UIActionResult) => {

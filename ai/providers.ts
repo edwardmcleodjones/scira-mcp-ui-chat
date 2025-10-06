@@ -1,13 +1,9 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { createGroq } from "@ai-sdk/groq";
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createXai } from "@ai-sdk/xai";
+import { createOpenAI } from '@ai-sdk/openai';
+import { createGroq } from '@ai-sdk/groq';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createXai } from '@ai-sdk/xai';
 
-import { 
-  customProvider, 
-  wrapLanguageModel, 
-  extractReasoningMiddleware 
-} from "ai";
+import { customProvider, wrapLanguageModel, extractReasoningMiddleware } from 'ai';
 
 export interface ModelInfo {
   provider: string;
@@ -27,66 +23,65 @@ const getApiKey = (key: string): string | undefined => {
   if (process.env[key]) {
     return process.env[key] || undefined;
   }
-  
+
   // Fall back to localStorage if available
   if (typeof window !== 'undefined') {
     return window.localStorage.getItem(key) || undefined;
   }
-  
+
   return undefined;
 };
 
 // Create provider instances with API keys from localStorage
-// const openaiClient = createOpenAI({
-//   apiKey: getApiKey('OPENAI_API_KEY'),
+const openaiClient = createOpenAI({
+  apiKey: getApiKey('OPENAI_API_KEY'),
+});
+
+// const anthropicClient = createAnthropic({
+//   apiKey: getApiKey('ANTHROPIC_API_KEY'),
 // });
 
-const anthropicClient = createAnthropic({
-  apiKey: getApiKey('ANTHROPIC_API_KEY'),
-});
-
-const groqClient = createGroq({
-  apiKey: getApiKey('GROQ_API_KEY'),
-});
+// const groqClient = createGroq({
+//   apiKey: getApiKey('GROQ_API_KEY'),
+// });
 
 // const xaiClient = createXai({
 //   apiKey: getApiKey('XAI_API_KEY'),
 // });
 
 const languageModels = {
-  // "gpt-4.1-mini": openaiClient("gpt-4.1-mini"),
-  "claude-4-sonnet": anthropicClient('claude-sonnet-4-20250514'),
-  "qwen-qwq": wrapLanguageModel(
-    {
-      model: groqClient("qwen-qwq-32b"),
-      middleware
-    }
-  ),
+  'gpt-4.1-mini': openaiClient('gpt-4.1-mini'),
+  // 'claude-4-sonnet': anthropicClient('claude-sonnet-4-20250514'),
+  // 'qwen-qwq': wrapLanguageModel({
+  //   model: groqClient('qwen-qwq-32b'),
+  //   middleware,
+  // }),
   // "grok-3-mini": xaiClient("grok-3-mini-latest"),
 };
 
 export const modelDetails: Record<keyof typeof languageModels, ModelInfo> = {
-  // "gpt-4.1-mini": {
-  //   provider: "OpenAI",
-  //   name: "GPT-4.1 Mini",
-  //   description: "Compact version of OpenAI's GPT-4.1 with good balance of capabilities, including vision.",
-  //   apiVersion: "gpt-4.1-mini",
-  //   capabilities: ["Balance", "Creative", "Vision"]
+  'gpt-4.1-mini': {
+    provider: 'OpenAI',
+    name: 'GPT-4.1 Mini',
+    description:
+      "Compact version of OpenAI's GPT-4.1 with good balance of capabilities, including vision.",
+    apiVersion: 'gpt-4.1-mini',
+    capabilities: ['Balance', 'Creative', 'Vision'],
+  },
+  // "claude-4-sonnet": {
+  //   provider: "Anthropic",
+  //   name: "Claude 4 Sonnet",
+  //   description: "Latest version of Anthropic's Claude 4 Sonnet with strong reasoning and coding capabilities.",
+  //   apiVersion: "claude-sonnet-4-20250514",
+  //   capabilities: ["Reasoning", "Efficient", "Agentic"]
   // },
-  "claude-4-sonnet": {
-    provider: "Anthropic",
-    name: "Claude 4 Sonnet",
-    description: "Latest version of Anthropic's Claude 4 Sonnet with strong reasoning and coding capabilities.",
-    apiVersion: "claude-sonnet-4-20250514",
-    capabilities: ["Reasoning", "Efficient", "Agentic"]
-  },
-  "qwen-qwq": {
-    provider: "Groq",
-    name: "Qwen QWQ",
-    description: "Latest version of Alibaba's Qwen QWQ with strong reasoning and coding capabilities.",
-    apiVersion: "qwen-qwq",
-    capabilities: ["Reasoning", "Efficient", "Agentic"]
-  },
+  // "qwen-qwq": {
+  //   provider: "Groq",
+  //   name: "Qwen QWQ",
+  //   description: "Latest version of Alibaba's Qwen QWQ with strong reasoning and coding capabilities.",
+  //   apiVersion: "qwen-qwq",
+  //   capabilities: ["Reasoning", "Efficient", "Agentic"]
+  // },
   // "grok-3-mini": {
   //   provider: "XAI",
   //   name: "Grok 3 Mini",
@@ -114,4 +109,4 @@ export type modelID = keyof typeof languageModels;
 
 export const MODELS = Object.keys(languageModels);
 
-export const defaultModel: modelID = "qwen-qwq";
+export const defaultModel: modelID = 'gpt-4.1-mini';

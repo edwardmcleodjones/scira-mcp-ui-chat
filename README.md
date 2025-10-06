@@ -4,9 +4,10 @@
 
 <p align="center">
 
-  This Scira Chat fork hosts a playground for [MCP-UI](https://github.com/idosal/mcp-ui)-enabled chats. The chat automatically renders tool call results from the `mcp-ui` server SDK as UI components and can react to actions performed on them. For more information, please refer to the [documentation](https://idosal.github.io/mcp-ui/).
+This Scira Chat fork hosts a playground for [MCP-UI](https://github.com/idosal/mcp-ui)-enabled chats. The chat automatically renders tool call results from the `mcp-ui` server SDK as UI components and can react to actions performed on them. For more information, please refer to the [documentation](https://idosal.github.io/mcp-ui/).
 
-  You can define any MCP server to see the results live. For your convenience, you can configure the [demo server](https://remote-mcp-server-authless.idosalomon.workers.dev/sse) as a quickstart (see more details in the [guide](https://github.com/idosal/mcp-ui?tab=readme-ov-file#-examples)).
+You can define any MCP server to see the results live. For your convenience, you can configure the [demo server](https://remote-mcp-server-authless.idosalomon.workers.dev/sse) as a quickstart (see more details in the [guide](https://github.com/idosal/mcp-ui?tab=readme-ov-file#-examples)).
+
 </p>
 
 <p align="center">
@@ -21,7 +22,7 @@
 - **Supports UI in tool responses using `mcp-ui`**!
 - Streaming text responses powered by the [AI SDK by Vercel](https://sdk.vercel.ai/docs), allowing multiple AI providers to be used interchangeably with just a few lines of code.
 - Full integration with [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers to expand available tools and capabilities.
-- Multiple MCP transport types (SSE and stdio) for connecting to various tool providers.
+- Multiple MCP transport types (SSE, StreamableHTTP and stdio) for connecting to various tool providers.
 - Built-in tool integration for extending AI capabilities.
 - Reasoning model support.
 - [shadcn/ui](https://ui.shadcn.com/) components for a modern, responsive UI powered by [Tailwind CSS](https://tailwindcss.com).
@@ -36,18 +37,43 @@ This application supports connecting to Model Context Protocol (MCP) servers to 
 1. Click the settings icon (⚙️) next to the model selector in the chat interface.
 2. Enter a name for your MCP server.
 3. Select the transport type:
-   - **SSE (Server-Sent Events)**: For HTTP-based remote servers
-   - **stdio (Standard I/O)**: For local servers running on the same machine
+
+- **SSE (Server-Sent Events)**: For HTTP-based remote servers
+- **StreamableHTTP**: Experimental streaming HTTP transport using `StreamableHTTPClientTransport` from the MCP SDK
+- **stdio (Standard I/O)**: For local servers running on the same machine
 
 #### SSE Configuration
 
 If you select SSE transport:
+
 1. Enter the server URL (e.g., `https://mcp.example.com/token/sse`)
 2. Click "Add Server"
+
+#### StreamableHTTP Configuration
+
+If you select StreamableHTTP transport:
+
+1. Enter the server URL (e.g., `http://localhost:3000/mcp`)
+2. Click "Add Server"
+
+This uses the `StreamableHTTPClientTransport` under the hood:
+
+```ts
+import { experimental_createMCPClient as createMCPClient } from 'ai';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
+
+const url = new URL('http://localhost:3000/mcp');
+const mcpClient = await createMCPClient({
+  transport: new StreamableHTTPClientTransport(url, {
+    sessionId: 'session_123',
+  }),
+});
+```
 
 #### stdio Configuration
 
 If you select stdio transport:
+
 1. Enter the command to execute (e.g., `npx`)
 2. Enter the command arguments (e.g., `-y @modelcontextprotocol/server-google-maps`)
    - You can enter space-separated arguments or paste a JSON array
@@ -58,6 +84,7 @@ If you select stdio transport:
 ### Available MCP Servers
 
 You can use any MCP-compatible server with this application. You can use the [demo server](https://remote-mcp-server-authless.idosalomon.workers.dev/sse), which exposes 4 tools -
+
 - `get_tasks_status` - Get a textual representation of the status of all tasks. Used to highlight the difference from UI tool results.
 - `show_task_status` - Displays a UI for the user to see the status of tasks (as opposed to text).
 - `show_user_status` - Displays a UI for the user to see the status of a user and their tasks (triggered by clicking on the user avatar in the `show_task` UI).
