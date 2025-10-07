@@ -161,7 +161,12 @@ export const MCPServerManager = ({
   const [editedHeaderValue, setEditedHeaderValue] = useState<string>('');
 
   // Add access to the MCP context for server control
-  const { startServer, stopServer, updateServerStatus } = useMCP();
+  const { startServer, stopServer, updateServerStatus, mcpUiEnabled, setMcpUiEnabled } = useMCP();
+
+  const handleToggleMcpUi = () => {
+    setMcpUiEnabled((current) => !current);
+    toast.success(`MCP-UI ${mcpUiEnabled ? 'disabled' : 'enabled'}`);
+  };
 
   const resetAndClose = () => {
     setView('list');
@@ -1022,6 +1027,15 @@ export const MCPServerManager = ({
               >
                 <X className="h-3.5 w-3.5" />
                 Disable All
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleToggleMcpUi}
+                size="sm"
+                className="gap-1.5"
+                aria-pressed={mcpUiEnabled}
+              >
+                {mcpUiEnabled ? 'Disable MCP-UI' : 'Enable MCP-UI'}
               </Button>
               <Button onClick={() => setView('add')} size="sm" className="gap-1.5">
                 <PlusCircle className="h-3.5 w-3.5" />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, memo } from 'react';
+import type { CSSProperties } from 'react';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { UIResourceRenderer, UIActionResult } from '@mcp-ui/client';
 import type { UseChatHelpers, Message as TMessage } from '@ai-sdk/react';
 import { nanoid } from 'nanoid';
+import { useMCP } from '@/lib/context/mcp-context';
 
 // Define interfaces for better type safety
 interface HtmlResourceData {
@@ -51,6 +53,17 @@ interface ToolInvocationProps {
   append?: UseChatHelpers['append'];
 }
 
+// Scalable style selection for multiple tools
+const TOOL_RESOURCE_STYLES: Record<string, CSSProperties> = {
+  show_user_status: { minHeight: 695 },
+  roll_regular_dice: { height: 140, minHeight: 140 },
+  // add more:
+};
+
+const DEFAULT_RESOURCE_STYLE: CSSProperties = {
+  minHeight: 425,
+};
+
 export const ToolInvocation = memo(function ToolInvocation({
   toolName,
   state,
@@ -62,6 +75,7 @@ export const ToolInvocation = memo(function ToolInvocation({
 }: ToolInvocationProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [htmlResourceContents, setHtmlResourceContents] = useState<HtmlResourceData[]>([]);
+  const { mcpUiEnabled } = useMCP();
 
   useEffect(() => {
     let processedContainer: ParsedResultContainer | null = null;
@@ -180,17 +194,6 @@ export const ToolInvocation = memo(function ToolInvocation({
     } catch {
       return String(content);
     }
-  };
-
-  // Scalable style selection for multiple tools
-  const TOOL_RESOURCE_STYLES: Record<string, React.CSSProperties> = {
-    show_user_status: { minHeight: 695 },
-    roll_regular_dice: { height: 140, minHeight: 140 },
-    // add more:
-  };
-  const DEFAULT_RESOURCE_STYLE: React.CSSProperties = {
-    // Default:
-    minHeight: 425,
   };
 
   const resourceStyle = useMemo(
@@ -315,7 +318,7 @@ export const ToolInvocation = memo(function ToolInvocation({
                 <span className="font-medium">Result</span>
               </div>
 
-              {htmlResourceContents.length > 0 ? (
+              {mcpUiEnabled && htmlResourceContents.length > 0 ? (
                 renderedHtmlResources
               ) : (
                 <pre

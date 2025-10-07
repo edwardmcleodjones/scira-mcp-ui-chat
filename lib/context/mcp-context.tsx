@@ -45,6 +45,8 @@ interface MCPContextType {
   stopServer: (serverId: string) => Promise<boolean>;
   updateServerStatus: (serverId: string, status: ServerStatus, errorMessage?: string) => void;
   getActiveServersForApi: () => MCPServerApi[];
+  mcpUiEnabled: boolean;
+  setMcpUiEnabled: (enabled: boolean | ((current: boolean) => boolean)) => void;
 }
 
 const MCPContext = createContext<MCPContextType | undefined>(undefined);
@@ -89,6 +91,11 @@ export function MCPProvider({ children }: { children: React.ReactNode }) {
   const [selectedMcpServers, setSelectedMcpServers] = useLocalStorage<string[]>(
     STORAGE_KEYS.SELECTED_MCP_SERVERS,
     []
+  );
+
+  const [mcpUiEnabled, setMcpUiEnabled] = useLocalStorage<boolean>(
+    STORAGE_KEYS.MCP_UI_ENABLED,
+    false
   );
 
   // Create a ref to track active servers and avoid unnecessary re-renders
@@ -279,6 +286,8 @@ export function MCPProvider({ children }: { children: React.ReactNode }) {
         stopServer,
         updateServerStatus,
         getActiveServersForApi,
+        mcpUiEnabled,
+        setMcpUiEnabled,
       }}
     >
       {children}
